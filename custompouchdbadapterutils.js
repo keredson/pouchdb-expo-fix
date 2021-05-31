@@ -228,7 +228,6 @@ function preprocessBlob(att, blobType, callback) {
          var base64data = reader.result;     
          const content = base64data.substr("data:application/octet-stream;base64,".length);           
          att.data = content;
-         console.log(content);
         Crypto.digestStringAsync(
           Crypto.CryptoDigestAlgorithm.MD5,
           att.data
