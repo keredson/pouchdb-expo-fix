@@ -5,5 +5,9 @@
   "main": "index.js",
   "repository": "git@github.com:keredson/pouchdb-expo-fix.git",
   "author": "Derek Anderson <public@kered.org>",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "pouchdb-adapter-utils": "^7.2.2",
+    "pouchdb-utils": "^7.2.2"
+  }
 }
