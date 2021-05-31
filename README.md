@@ -1,5 +1,13 @@
 # PouchDB Expo Fix
 
+## About
+
+[PouchdB](https://pouchdb.com/) is a database I recently started exploring.  But it sadly
+doesn't work inside Expo, or worse, fails silently (or with untracable promise errors)
+when a document with an attachment is  synced.  This package is a collection of hacks I 
+implemented / pulled from other resources to make it usable.
+
+
 ## Installation
 
 ### Dependencies
@@ -123,3 +131,16 @@ node_modules/pouchdb-core/lib/index.es.js:      opts.binary = true;
 node_modules/pouchdb-core/lib/index.js:      opts.binary = true;
 ```
 You may need to do something like the `FileReader.readAsArrayBuffer` fix above.
+
+### Sets Global Base64
+
+If `global.btoa` or `global.atob` don't exist in your app, this package will set them for you.
+
+
+## Other Work
+
+None of these (currently) work in Expo, but I used heavily in building this lib:
+
+- https://medium.com/@duytq94/making-a-simple-note-app-with-pouchdb-in-react-native-ec4810b18a42
+- https://dev.to/craftzdog/created-pouchdb-7-for-react-native-23g6
+- https://github.com/badbod99/pouchdb-expo-example
