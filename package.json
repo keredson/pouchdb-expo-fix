@@ -1,0 +1,9 @@
+{
+  "name": "pouchdb-expo-fix",
+  "version": "0.1.0",
+  "description": "Fixes so PouchDB will run under Expo / React Native.",
+  "main": "index.js",
+  "repository": "git@github.com:keredson/pouchdb-expo-fix.git",
+  "author": "Derek Anderson <public@kered.org>",
+  "license": "MIT"
+}
