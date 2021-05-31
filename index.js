@@ -8,10 +8,18 @@ import PouchDB from 'pouchdb-core';
 
 
 
+
+
+
 // this has a new impl of `preprocessBlob()`
 var pouchdbAdapterUtils = require('pouchdb-adapter-utils');
 var customPouchdbAdapterUtils = require('./custompouchdbadapterutils');
 pouchdbAdapterUtils.preprocessAttachments = customPouchdbAdapterUtils.preprocessAttachments
+
+
+
+
+
 
 
 
@@ -59,4 +67,45 @@ PouchDB.prototype.getAttachment =
     }
   });
 });
+
+
+
+
+
+
+
+
+
+
+
+import {btoa, atob} from './base64'
+if (!global.btoa) {
+    global.btoa = btoa;
+}
+if (!global.atob) {
+    global.atob = atob;
+}
+
+
+
+
+
+
+
+
+
+
+
+import * as SQLite from 'expo-sqlite';
+// SQLite adapter (basically just a shim) between WebSQL and SQLite
+import sqliteadapter from './sqliteadapter';
+const PouchDBExpoFixSQLiteAdapter = sqliteadapter(SQLite);
+
+
+
+export {PouchDBExpoFixSQLiteAdapter}
+
+
+
+
 
