@@ -11,12 +11,27 @@ import PouchDB from 'pouchdb-core';
 
 
 
-// this has a new impl of `preprocessBlob()`
-var pouchdbAdapterUtils = require('pouchdb-adapter-utils');
-var customPouchdbAdapterUtils = require('./custompouchdbadapterutils');
-pouchdbAdapterUtils.preprocessAttachments = customPouchdbAdapterUtils.preprocessAttachments
+// for node_modules/pouchdb-adapter-http/lib/index.js: blob.type = contentType
+// already fixed upstream, but not yet released
+// see https://github.com/pouchdb/pouchdb/pull/8255/files
+process.browser = true;
 
 
+
+
+
+
+
+
+function fix_pouchdb_adapter_utils() {
+
+  // this has a new impl of `preprocessBlob()`
+  var pouchdbAdapterUtils = require('pouchdb-adapter-utils');
+  var customPouchdbAdapterUtils = require('./custompouchdbadapterutils');
+//  pouchdbAdapterUtils.preprocessAttachments = customPouchdbAdapterUtils.preprocessAttachments
+  return customPouchdbAdapterUtils.preprocessAttachments
+
+}
 
 
 
@@ -102,8 +117,13 @@ import sqliteadapter from './sqliteadapter';
 const PouchDBExpoFixSQLiteAdapter = sqliteadapter(SQLite);
 
 
+const PouchDBExpoFix = {
+  sqliteadapter,
+  PouchDBExpoFixSQLiteAdapter,
+  fix_pouchdb_adapter_utils,
+}
 
-export {PouchDBExpoFixSQLiteAdapter}
+export default PouchDBExpoFix
 
 
 
