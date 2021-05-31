@@ -1,3 +1,5 @@
+![](logo.png)
+
 # PouchDB Expo Fix
 
 ## About
