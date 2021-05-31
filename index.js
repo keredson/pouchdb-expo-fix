@@ -111,15 +111,19 @@ if (!global.atob) {
 
 
 
-import * as SQLite from 'expo-sqlite';
-// SQLite adapter (basically just a shim) between WebSQL and SQLite
-import sqliteadapter from './sqliteadapter';
-const PouchDBExpoFixSQLiteAdapter = sqliteadapter(SQLite);
+import build_sqlite_adapter from './sqliteadapter';
+
+
+
+
+
+
+
+
 
 
 const PouchDBExpoFix = {
-  sqliteadapter,
-  PouchDBExpoFixSQLiteAdapter,
+  build_sqlite_adapter,
   fix_pouchdb_adapter_utils,
 }
 
