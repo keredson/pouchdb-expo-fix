@@ -1,4 +1,4 @@
-# Pouchdb Expo Fix
+# PouchDB Expo Fix
 
 ## Installation
 
@@ -89,3 +89,37 @@ To fix, I let `pouchdb-adapter-websql-core` use any version greater than 7.0.0
 }
 ```
 
+## Heads Up
+
+### Sets `process.browser`
+
+This library sets `process.browser = true`.  This prevents the following error:
+
+```javascript
+TypeError: Cannot assign to read only property 'type' of object
+```
+
+This is a workaround until [this PouchDB bug fix](https://github.com/pouchdb/pouchdb/pull/8255/files)
+makes it into a release, but it could have side effects elsewhere in your app.
+
+### Overwrites `PouchDB.getAttachment`
+
+This fix overwrites the implementation of `PouchDB.getAttachment`, to make
+`opts.binary` default to `false` (instead of `true`), which tells PouchDB to use base64 strings
+instead of `Blob`s and `ArrayBuffer`s.  If you're still getting the following error:
+
+```javascript
+Error: Creating blobs from 'ArrayBuffer' and 'ArrayBufferView' are not supported
+```
+
+Search for other copies of this function with:
+```bash
+$ grep -R "opts.binary = true" node_modules/
+```
+
+If you see more than:
+```
+node_modules/pouchdb-core/lib/index.es.js:      opts.binary = true;
+node_modules/pouchdb-core/lib/index.js:      opts.binary = true;
+```
+You may need to do something like the `FileReader.readAsArrayBuffer` fix above.
