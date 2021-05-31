@@ -1,3 +1,5 @@
+import 'react-native-get-random-values';
+
 console.log('--==[ pouchdb-expo-fix ]==--')
 
 import PouchDB from 'pouchdb-core';
@@ -23,6 +25,29 @@ process.browser = true;
 
 
 
+/*
+  If you see:
+  
+    Possible Unhandled Promise Rejection (id: 0):
+    [Error: FileReader.readAsArrayBuffer is not implemented]
+    
+  It's likely coming from `preprocessBlob`, which this is intended to replace.
+  If you're calling this and still getting this error, you likely have another 
+  (internal) copy of `pouchdb-adapter-utils` about.
+  
+  Try `find . | grep pouchdb-adapter-utils` to confirm.
+  
+  To fix, set `resolutions` in `package.json` to get rid of the internal coflict.
+  For example, my `pouchdb-adapter-websql-core was locked to `pouchdb-adapter-utils`
+  version `7.0.0`, not the `7.2.2` that's currently out (and this library is
+  modifying).  To fix, I let `pouchdb-adapter-websql-core` use any version
+  greater than `7.0.0` (by specifying `"^7.0.0"`).
+  
+    "resolutions": {
+      "pouchdb-adapter-websql-core/pouchdb-adapter-utils": "^7.0.0"
+    }
+  
+ */
 function fix_pouchdb_adapter_utils() {
 
   // this has a new impl of `preprocessBlob()`

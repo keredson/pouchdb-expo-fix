@@ -8,7 +8,7 @@ var pouchdbBinaryUtils = require('pouchdb-binary-utils');
 var pouchdbMd5 = require('pouchdb-md5');
 var pouchdbMerge = require('pouchdb-merge');
 var pouchdbCollections = require('pouchdb-collections');
-  import * as Crypto from 'expo-crypto';
+import * as Crypto from 'expo-crypto';
 
 
 function allDocsKeysQuery(api, opts) {
