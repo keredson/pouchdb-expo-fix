@@ -117,6 +117,28 @@ PouchDB.prototype.getAttachment =
 
 
 
+var pouchdbBinaryUtils = require('pouchdb-binary-utils');
+pouchdbBinaryUtils.blobOrBufferToBase64 = function (blob, resolve) {
+  console.log('woot')
+  const reader = new FileReader();
+  reader.onloadend = () => {
+    var base64data = reader.result;
+    base64data = base64data.substr(base64data.indexOf(',')+1);
+    console.log('base64data', base64data)
+    resolve(base64data);
+  }
+  reader.readAsDataURL(blob);
+}
+
+
+
+
+
+
+
+
+
+
 
 import {btoa, atob} from './base64'
 if (!global.btoa) {
@@ -145,11 +167,130 @@ import build_sqlite_adapter from './sqliteadapter';
 
 
 
+const DATA = 'aGVsbG8gd29ybGQ=' // "hello world"
+
+
+async function run_local_tests() {
+
+  // make sure no data exists
+  let db1 = new PouchDB('db1', { adapter: 'react-native-sqlite' });
+  let db2 = new PouchDB('db2', { adapter: 'react-native-sqlite' });
+  
+  await db1.destroy()
+  await db2.destroy()
+  console.log('dbs cleared')
+  
+  db1 = new PouchDB('db1', { adapter: 'react-native-sqlite', 
+    fetch: function (url, opts) { 
+      console.log('xxx', opts)
+      opts.binary = false;
+      return PouchDB.fetch(url, opts);
+    }
+   });
+  db2 = new PouchDB('db2', { adapter: 'react-native-sqlite',
+    fetch: function (url, opts) { 
+      console.log('xxx', opts)
+      opts.binary = false;
+      return PouchDB.fetch(url, opts);
+    }
+ });
+
+  console.log('writing doc w/ attachment')
+  await db1.put({
+    _id: 'mydoc',
+    _attachments: {
+      'myattachment.txt': {
+        content_type: 'text/plain',
+        data: DATA
+      }
+    }
+  });
+  
+  let mydoc = await db1.get('mydoc', {attachments: true})
+  console.log('read doc w/ attachment', mydoc)
+  if (mydoc._attachments['myattachment.txt'].data != DATA) throw Exception("data doesn't match")
+  
+  console.log('syncing doc to db2')
+  await db1.sync(db2)
+  
+}
+
+
+async function run_remote_tests(url) {
+
+  let local_db = new PouchDB('local_db', { adapter: 'react-native-sqlite' });
+  await local_db.destroy()
+  console.log('remote db cleared')
+  
+  local_db = new PouchDB('local_db', { adapter: 'react-native-sqlite' });
+  let remote_db = new PouchDB(url);
+
+
+  // write doc to remote db
+  let pouchdb_expo_test_doc = await remote_db.post({
+    type: 'pouchdb-test-doc',
+    _attachments: {
+      'myattachment.txt': {
+        content_type: 'text/plain',
+        data: DATA
+      }
+    }
+  });
+  console.log('wrote pouchdb_expo_test_doc', pouchdb_expo_test_doc)
+  
+  // read doc from remote db
+  console.log('read pouchdb_expo_test_doc', await remote_db.get(pouchdb_expo_test_doc.id, {attachments: true}))
+  
+  // sync to local_db
+  await local_db.sync(remote_db)
+  console.log('synced remote doc to local')
+
+  // read doc from local db
+  console.log('read pouchdb_expo_test_doc', await local_db.get(pouchdb_expo_test_doc.id, {attachments: true}))
+
+  // write doc to local db
+  let pouchdb_expo_test_doc2 = await local_db.post({
+    type: 'pouchdb-test-doc',
+    _attachments: {
+      'myattachment.txt': {
+        content_type: 'text/plain',
+        data: DATA
+      }
+    }
+  });
+  console.log('wrote pouchdb_expo_test_doc2', pouchdb_expo_test_doc2)
+
+  await local_db.sync(remote_db)
+  console.log('synced local doc to remote')
+
+  await local_db.remove({_id:pouchdb_expo_test_doc.id, _rev:pouchdb_expo_test_doc.rev})
+  console.log('removed pouchdb_expo_test_doc locally')
+
+  await local_db.sync(remote_db)
+  console.log('synced local doc removed')
+
+  await remote_db.remove({_id:pouchdb_expo_test_doc2.id, _rev:pouchdb_expo_test_doc2.rev})
+  console.log('removed pouchdb_expo_test_doc2 from remote_db')
+
+  await remote_db.sync(local_db)
+  console.log('synced local doc removed')
+
+}
+
+
+
+
+
+
+
+
 
 
 const PouchDBExpoFix = {
   build_sqlite_adapter,
   fix_pouchdb_adapter_utils,
+  run_local_tests,
+  run_remote_tests,
 }
 
 export default PouchDBExpoFix
