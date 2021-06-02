@@ -32,9 +32,41 @@ function ReactNativeSQLitePouch (opts, callback) {
   var _opts = Object.assign({
     websql: websql
   }, opts)
-
-  WebSqlPouchCore.call(this, _opts, callback)
+  
+  WebSqlPouchCore.call(this, _opts, (x,WebSqlPouch) => {
+    WebSqlPouch._getAttachment = _getAttachment.bind(WebSqlPouch)
+    callback(x,WebSqlPouch)
+  })
 }
+
+function _getAttachment(docId, attachId, attachment, opts, callback) {
+    var res;
+    var tx = opts.ctx;
+    var digest = attachment.digest;
+    var type = attachment.content_type;
+    var sql = 'SELECT escaped, ' +
+      'CASE WHEN escaped = 1 THEN body ELSE HEX(body) END AS body FROM ' +
+      'attach-store' + ' WHERE digest=?';
+    tx.executeSql(sql, [digest], function (tx, result) {
+      // websql has a bug where \u0000 causes early truncation in strings
+      // and blobs. to work around this, we used to use the hex() function,
+      // but that's not performant. after migration 6, we remove \u0000
+      // and add it back in afterwards
+      var item = result.rows.item(0);
+      var data = item.escaped ? unescapeBlob(item.body) :
+        parseHexString(item.body, encoding);
+      console.log('\n\n\n\n_getAttachment', opts, item.escaped, data)
+      if (opts.binary) {
+        res = pouchdbBinaryUtils.binaryStringToBlobOrBuffer(data, type);
+      } else if (typeof(opts.binary)==='undefined') {
+        res = data
+      } else {
+        res = pouchdbBinaryUtils.btoa(data);
+      }
+      callback(null, res);
+    });
+  };
+
 
 ReactNativeSQLitePouch.valid = function () {
   // if you're using ReactNative, we assume you know what you're doing because you control the environment
