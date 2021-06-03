@@ -3,6 +3,7 @@
 var WebSqlPouchCore = null
 
 import * as SQLite from 'expo-sqlite';
+var pouchdbBinaryUtils = require('pouchdb-binary-utils');
 
 function createOpenDBFunction (opts) {
   return function (name, version, description, size) {
@@ -39,6 +40,15 @@ function ReactNativeSQLitePouch (opts, callback) {
   })
 }
 
+function unescapeBlob(str) {
+  /* eslint-disable no-control-regex */
+  return str
+    .replace(/\u0001\u0001/g, '\u0000')
+    .replace(/\u0001\u0002/g, '\u0001')
+    .replace(/\u0002\u0002/g, '\u0002');
+  /* eslint-enable no-control-regex */
+}
+
 function _getAttachment(docId, attachId, attachment, opts, callback) {
     var res;
     var tx = opts.ctx;
@@ -46,7 +56,7 @@ function _getAttachment(docId, attachId, attachment, opts, callback) {
     var type = attachment.content_type;
     var sql = 'SELECT escaped, ' +
       'CASE WHEN escaped = 1 THEN body ELSE HEX(body) END AS body FROM ' +
-      'attach-store' + ' WHERE digest=?';
+      '"attach-store"' + ' WHERE digest=?';
     tx.executeSql(sql, [digest], function (tx, result) {
       // websql has a bug where \u0000 causes early truncation in strings
       // and blobs. to work around this, we used to use the hex() function,
@@ -58,7 +68,7 @@ function _getAttachment(docId, attachId, attachment, opts, callback) {
       console.log('\n\n\n\n_getAttachment', opts, item.escaped, data)
       if (opts.binary) {
         res = pouchdbBinaryUtils.binaryStringToBlobOrBuffer(data, type);
-      } else if (typeof(opts.binary)==='undefined') {
+      } else if (attachment.content_type!='text/plain' && typeof(opts.binary)==='undefined') {
         res = data
       } else {
         res = pouchdbBinaryUtils.btoa(data);
