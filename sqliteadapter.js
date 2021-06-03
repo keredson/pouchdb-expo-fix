@@ -49,6 +49,8 @@ function unescapeBlob(str) {
   /* eslint-enable no-control-regex */
 }
 
+var base64regex = /^([0-9a-zA-Z+/]{4})*(([0-9a-zA-Z+/]{2}==)|([0-9a-zA-Z+/]{3}=))?$/;
+
 function _getAttachment(docId, attachId, attachment, opts, callback) {
     var res;
     var tx = opts.ctx;
@@ -65,13 +67,11 @@ function _getAttachment(docId, attachId, attachment, opts, callback) {
       var item = result.rows.item(0);
       var data = item.escaped ? unescapeBlob(item.body) :
         parseHexString(item.body, encoding);
-      console.log('\n\n\n\n_getAttachment', opts, item.escaped, data)
       if (opts.binary) {
         res = pouchdbBinaryUtils.binaryStringToBlobOrBuffer(data, type);
-      } else if (attachment.content_type!='text/plain' && typeof(opts.binary)==='undefined') {
-        res = data
       } else {
-        res = pouchdbBinaryUtils.btoa(data);
+        if (base64regex.test(data)) res = data
+        else res = pouchdbBinaryUtils.btoa(data);
       }
       callback(null, res);
     });
